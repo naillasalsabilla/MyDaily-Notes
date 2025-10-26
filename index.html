@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catatan Harianku 📘</title>
+  <style>
+    :root {
+      --blue1: #BBDEFB;
+      --blue2: #E3F2FD;
+      --blue3: #C5CAE9;
+      --blue4: #B3E5FC;
+      --blue5: #90CAF9;
+    }
+
+    body {
+      font-family: "Comic Sans MS", "Comic Neue", "Poppins", cursive;
+      background-color: var(--blue1);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      transition: background-color 0.5s ease;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 450px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    h1 {
+      color: #1565C0;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    input, textarea, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #90CAF9;
+      font-family: inherit;
+      font-size: 15px;
+    }
+
+    button {
+      background-color: #1976D2;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #0D47A1;
+    }
+
+    .note {
+      background-color: var(--blue2);
+      padding: 12px;
+      border-radius: 10px;
+      text-align: left;
+      margin-bottom: 10px;
+      color: #0D47A1;
+    }
+
+    .logout {
+      background-color: #E53935;
+      margin-top: 15px;
+    }
+
+    .logout:hover {
+      background-color: #C62828;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="loginPage">
+    <h1>📘 Catatan Harianku</h1>
+    <p>Masuk dengan nama dan kata sandi</p>
+    <input type="text" id="nama" placeholder="Nama lengkap" />
+    <input type="password" id="password" placeholder="Kata sandi" />
+    <button onclick="login()">Masuk</button>
+  </div>
+
+  <div class="container" id="notePage" style="display:none;">
+    <h1>Selamat Datang 💙</h1>
+    <p id="userName"></p>
+
+    <select id="hari">
+      <option>Senin</option>
+      <option>Selasa</option>
+      <option>Rabu</option>
+      <option>Kamis</option>
+      <option>Jumat</option>
+      <option>Sabtu</option>
+      <option>Minggu</option>
+    </select>
+
+    <input type="number" id="tanggal" placeholder="Tanggal (1-31)" min="1" max="31" />
+    <input type="text" id="bulan" placeholder="Bulan (misal: Oktober)" />
+    <input type="number" id="tahun" placeholder="Tahun (misal: 2025)" />
+
+    <textarea id="cerita" rows="5" placeholder="Tulis cerita harianmu di sini..."></textarea>
+    <button onclick="simpanCatatan()">Simpan Catatan</button>
+
+    <h2>📚 Catatanmu</h2>
+    <div id="catatanList"></div>
+
+    <button class="logout" onclick="logout()">Keluar</button>
+  </div>
+
+  <script>
+    const bgColors = ["#BBDEFB", "#E3F2FD", "#C5CAE9", "#B3E5FC", "#90CAF9"];
+    document.body.style.backgroundColor = bgColors[Math.floor(Math.random() * bgColors.length)];
+
+    function login() {
+      const nama = document.getElementById("nama").value.trim();
+      const password = document.getElementById("password").value.trim();
+      if (nama === "" || password === "") {
+        alert("Isi nama dan kata sandi terlebih dahulu!");
+        return;
+      }
+      localStorage.setItem("currentUser", nama);
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("notePage").style.display = "block";
+      document.getElementById("userName").innerText = nama;
+      tampilkanCatatan();
+    }
+
+    function logout() {
+      localStorage.removeItem("currentUser");
+      document.getElementById("notePage").style.display = "none";
+      document.getElementById("loginPage").style.display = "block";
+      document.getElementById("nama").value = "";
+      document.getElementById("password").value = "";
+    }
+
+    function simpanCatatan() {
+      const nama = localStorage.getItem("currentUser");
+      const hari = document.getElementById("hari").value;
+      const tanggal = document.getElementById("tanggal").value;
+      const bulan = document.getElementById("bulan").value;
+      const tahun = document.getElementById("tahun").value;
+      const cerita = document.getElementById("cerita").value.trim();
+
+      if (!cerita) {
+        alert("Tulis ceritanya dulu ya!");
+        return;
+      }
+
+      const catatan = {
+        nama,
+        tanggal: `${hari}, ${tanggal} ${bulan} ${tahun}`,
+        cerita
+      };
+
+      let semuaCatatan = JSON.parse(localStorage.getItem("catatan")) || [];
+      semuaCatatan.push(catatan);
+      localStorage.setItem("catatan", JSON.stringify(semuaCatatan));
+
+      document.getElementById("cerita").value = "";
+      tampilkanCatatan();
+      alert("Catatan berhasil disimpan! 🌸");
+    }
+
+    function tampilkanCatatan() {
+      const nama = localStorage.getItem("currentUser");
+      const semuaCatatan = JSON.parse(localStorage.getItem("catatan")) || [];
+      const catatanUser = semuaCatatan.filter(c => c.nama === nama);
+      const container = document.getElementById("catatanList");
+      container.innerHTML = "";
+
+      if (catatanUser.length === 0) {
+        container.innerHTML = "<p>Belum ada catatan hari ini 😊</p>";
+        return;
+      }
+
+      catatanUser.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "note";
+        div.innerHTML = `<b>${c.tanggal}</b><br>${c.cerita}`;
+        container.appendChild(div);
+      });
+    }
+
+    window.onload = function() {
+      const user = localStorage.getItem("currentUser");
+      if (user) {
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("notePage").style.display = "block";
+        document.getElementById("userName").innerText = user;
+        tampilkanCatatan();
+      }
+    }
+  </script>
+</body>
+</html>
